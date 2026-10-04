@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f3eb" />
+    <title>Blrrdle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="src/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="wordmark" href="#" aria-label="Blrrdle, reset demo">Blrrdle</a>
+        <div class="header-actions">
+          <button class="archive-button" id="archiveButton" aria-label="Past puzzles">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="1.5"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 10h17"/></svg>
+          </button>
+          <button class="help-button" id="helpButton" aria-label="How to play">?</button>
+        </div>
+      </header>
+
+      <section class="game" aria-labelledby="gameTitle">
+        <div class="game-heading">
+          <p class="eyebrow">Daily picture puzzle <span aria-hidden="true">·</span> <span id="puzzleNumber">#0142</span></p>
+          <h1 id="gameTitle">Name that movie.</h1>
+          <p class="subhead">A new frame, every day.</p>
+        </div>
+
+        <div class="frame-wrap">
+          <div class="film-frame reveal-1" id="filmFrame" role="img" aria-label="A cinematic mystery image"></div>
+          <div class="frame-caption"><span>Frame <span id="frameCount">1</span> of 3</span><span id="frameStatus">Look closely.</span></div>
+        </div>
+
+        <div class="attempts" aria-label="Attempts remaining"><span class="attempt filled"></span><span class="attempt filled"></span><span class="attempt filled"></span></div>
+
+        <form class="guess-form" id="guessForm">
+          <label class="sr-only" for="guessInput">Movie title</label>
+          <input id="guessInput" autocomplete="off" placeholder="Type the movie title…" maxlength="80" required />
+          <button type="submit">Guess <span aria-hidden="true">→</span></button>
+        </form>
+        <ul class="suggestions" id="suggestions" aria-label="Movie title suggestions" hidden></ul>
+        <p class="feedback" id="feedback" aria-live="polite"></p>
+
+        <div class="hints">
+          <p class="hint-label">Hints</p>
+          <div class="hint-controls">
+            <button class="hint" id="yearHint" aria-label="Reveal release year"><span class="hint-icon">◷</span><span class="hint-prompt">Release year</span><span class="hint-value" id="yearValue"></span></button>
+            <button class="hint" id="genreHint" aria-label="Reveal genre"><span class="hint-icon">◈</span><span class="hint-prompt">Genre</span><span class="hint-value" id="genreValue"></span></button>
+          </div>
+        </div>
+      </section>
+
+      <footer><a class="image-credit" href="https://film-grab.com/" target="_blank" rel="noreferrer">Frames from Film Grab</a><span class="inspiration-credit">Inspired by Framed.wtf</span></footer>
+    </main>
+    <div class="win-toast" id="winToast" role="status" aria-live="polite" hidden><span>✦</span> Correct</div>
+    <div class="glitch-flash" id="glitchFlash" aria-hidden="true"></div>
+
+    <dialog id="helpDialog">
+      <button class="dialog-close" id="closeHelp" aria-label="Close">×</button>
+      <p class="eyebrow">How it works</p>
+      <h2>One movie.<br>Three frames.</h2>
+      <p>Guess the title from the still. Each incorrect answer makes the image a little less blurry. You can use one hint per puzzle.</p>
+      <button class="dialog-cta" id="startButton">Let’s play</button>
+    </dialog>
+    <dialog class="archive-dialog" id="archiveDialog">
+      <button class="dialog-close" id="closeArchive" aria-label="Close">×</button>
+      <p class="eyebrow">Blrrdle archive</p>
+      <h2>Past puzzles</h2>
+      <p class="archive-intro">A record of every earlier daily frame.</p>
+      <ol class="archive-list" id="archiveList"></ol>
+    </dialog>
+    <dialog class="result-dialog" id="resultDialog">
+      <div class="success-splash" aria-hidden="true">✦</div>
+      <p class="eyebrow">Picture perfect</p>
+      <h2>You got it.</h2>
+      <p class="result-film" id="resultFilm"></p>
+      <div class="player-stats">
+        <div><strong id="streakValue">0</strong><span>day streak</span></div>
+        <div><strong id="winRateValue">0%</strong><span>win rate</span></div>
+      </div>
+      <section class="global-score" aria-labelledby="globalScoreTitle">
+        <div class="score-title"><span id="globalScoreTitle">Guesses</span><span>all players</span></div>
+        <div class="score-bars" aria-label="Guess distribution: 1 guess 42 percent, 2 guesses 35 percent, 3 guesses 23 percent">
+          <div class="bar-row"><span>1</span><i style="--bar:42%"></i><b>42%</b></div>
+          <div class="bar-row"><span>2</span><i style="--bar:35%"></i><b>35%</b></div>
+          <div class="bar-row"><span>3</span><i style="--bar:23%"></i><b>23%</b></div>
+        </div>
+      </section>
+      <button class="dialog-cta" id="resultShare">Share result</button>
+      <button class="result-close" id="closeResult">Close</button>
+    </dialog>
+    <script src="src/main.js"></script>
+  </body>
+</html>
