@@ -11,10 +11,29 @@ const selectedArchivePuzzle = Number(new URLSearchParams(location.search).get('p
 
 // Suggestions are a public film-search starter list, not the private puzzle catalogue.
 const movieIndex = [
-  ['The Godfather', '1972'], ['Jaws', '1975'], ['Star Wars', '1977'],
-  ['Blade Runner', '1982'], ['Back to the Future', '1985'], ['Goodfellas', '1990'],
-  ['The Matrix', '1999'], ['The Dark Knight', '2008'], ['Get Out', '2017'],
-  ['Everything Everywhere All at Once', '2022'],
+  ['12 Angry Men', '1957'], ['2001: A Space Odyssey', '1968'], ['A Clockwork Orange', '1971'], ['Alien', '1979'],
+  ['All the President’s Men', '1976'], ['Amadeus', '1984'], ['Apocalypse Now', '1979'], ['Arrival', '2016'],
+  ['Back to the Future', '1985'], ['Barbie', '2023'], ['Beetlejuice', '1988'], ['Birdman', '2014'],
+  ['Black Swan', '2010'], ['Blade Runner', '1982'], ['Boogie Nights', '1997'], ['The Breakfast Club', '1985'],
+  ['Casablanca', '1942'], ['Catch Me If You Can', '2002'], ['Children of Men', '2006'], ['Chinatown', '1974'],
+  ['The Conformist', '1970'], ['The Dark Knight', '2008'], ['The Departed', '2006'], ['Die Hard', '1988'],
+  ['Do the Right Thing', '1989'], ['Donnie Darko', '2001'], ['Dune', '2021'], ['E.T. the Extra-Terrestrial', '1982'],
+  ['Edward Scissorhands', '1990'], ['Everything Everywhere All at Once', '2022'], ['Ex Machina', '2014'], ['The Exorcist', '1973'],
+  ['Fight Club', '1999'], ['The Florida Project', '2017'], ['The French Dispatch', '2021'], ['Get Out', '2017'],
+  ['The Godfather', '1972'], ['The Godfather Part II', '1974'], ['Goodfellas', '1990'], ['The Grand Budapest Hotel', '2014'],
+  ['Halloween', '1978'], ['Heat', '1995'], ['Her', '2013'], ['Inception', '2010'], ['Indiana Jones and the Raiders of the Lost Ark', '1981'],
+  ['Inglourious Basterds', '2009'], ['Interstellar', '2014'], ['Jaws', '1975'], ['Kill Bill: Vol. 1', '2003'], ['Knives Out', '2019'],
+  ['La La Land', '2016'], ['Lady Bird', '2017'], ['The Lighthouse', '2019'], ['Little Miss Sunshine', '2006'],
+  ['Lost in Translation', '2003'], ['Mad Max: Fury Road', '2015'], ['The Matrix', '1999'], ['Memento', '2000'],
+  ['Moonlight', '2016'], ['Mulholland Drive', '2001'], ['No Country for Old Men', '2007'], ['Nope', '2022'],
+  ['Once Upon a Time in Hollywood', '2019'], ['The Others', '2001'], ['Oppenheimer', '2023'], ['Panic Room', '2002'],
+  ['Parasite', '2019'], ['Past Lives', '2023'], ['The Prestige', '2006'], ['Prisoners', '2013'],
+  ['Psycho', '1960'], ['Pulp Fiction', '1994'], ['The Princess Bride', '1987'], ['Raging Bull', '1980'],
+  ['The Revenant', '2015'], ['The Royal Tenenbaums', '2001'], ['Scream', '1996'], ['Se7en', '1995'],
+  ['The Shawshank Redemption', '1994'], ['The Shining', '1980'], ['Shutter Island', '2010'], ['The Silence of the Lambs', '1991'],
+  ['Singin’ in the Rain', '1952'], ['The Social Network', '2010'], ['Spider-Man: Into the Spider-Verse', '2018'], ['Star Wars', '1977'],
+  ['The Thing', '1982'], ['There Will Be Blood', '2007'], ['The Truman Show', '1998'], ['Uncut Gems', '2019'],
+  ['Vertigo', '1958'], ['Whiplash', '2014'], ['The Wizard of Oz', '1939'], ['Zodiac', '2007'],
 ];
 
 let guesses = 0;
