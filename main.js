@@ -266,7 +266,7 @@ async function renderArchive() {
     list.replaceChildren(...puzzles.map((puzzle) => {
     const item = document.createElement('li');
     const done = localStorage.getItem(`blrrdle-complete-${puzzle.puzzle_number}`) === 'true';
-    item.innerHTML = `<span>#${puzzle.puzzle_number}</span><strong>${puzzle.title}</strong><em>${done ? 'Completed' : puzzle.puzzle_date}</em>`;
+    item.innerHTML = `<span>#${puzzle.puzzle_number}</span><em>${done ? 'Completed' : 'Unplayed'}</em>`;
     if (!done) {
       const play = document.createElement('button');
       play.type = 'button';
