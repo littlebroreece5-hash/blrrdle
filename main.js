@@ -8,6 +8,7 @@ const dailyPuzzleEndpoint = 'https://qgomsmdzbxlujbtgebdw.supabase.co/functions/
 let puzzle = { number: String(puzzleNumber), title: '', year: '', genre: '', frames: ['', '', ''] };
 let usingLivePuzzle = false;
 let selectedArchivePuzzle = null;
+let todayPuzzleNumber = String(puzzleNumber);
 
 // Archive choices are intentionally one-time. A refresh always returns a player to today.
 try {
@@ -70,9 +71,17 @@ async function requestPuzzle(action, value, extra = {}) {
 
 async function loadLivePuzzle() {
   try {
-    const response = await fetch(`${dailyPuzzleEndpoint}${selectedArchivePuzzle ? `?puzzle=${selectedArchivePuzzle}` : ''}`);
-    const livePuzzle = await response.json();
-    if (!response.ok) throw new Error(livePuzzle.error || 'Unable to load puzzle.');
+    const todayResponse = await fetch(dailyPuzzleEndpoint);
+    const todayPuzzle = await todayResponse.json();
+    if (!todayResponse.ok) throw new Error(todayPuzzle.error || 'Unable to load today’s puzzle.');
+    todayPuzzleNumber = String(todayPuzzle.number);
+
+    let livePuzzle = todayPuzzle;
+    if (selectedArchivePuzzle && String(selectedArchivePuzzle) !== todayPuzzleNumber) {
+      const archiveResponse = await fetch(`${dailyPuzzleEndpoint}?puzzle=${selectedArchivePuzzle}`);
+      livePuzzle = await archiveResponse.json();
+      if (!archiveResponse.ok) throw new Error(livePuzzle.error || 'Unable to load puzzle.');
+    }
     puzzle = { ...puzzle, number: String(livePuzzle.number), frames: [livePuzzle.frameUrl, '', ''] };
     usingLivePuzzle = true;
     $('#puzzleNumber').textContent = `#${puzzle.number}`;
@@ -100,8 +109,40 @@ function updateFrame() {
   });
 }
 
+function progressKey() {
+  return `blrrdle-progress-${puzzle.number}`;
+}
+
+function saveProgress(won = null) {
+  try {
+    localStorage.setItem(progressKey(), JSON.stringify({ guesses, complete, won }));
+  } catch { /* progress remains available this visit */ }
+}
+
+function restoreProgress() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(progressKey())); } catch {
+    try { localStorage.removeItem(progressKey()); } catch { /* nothing to restore */ }
+    return;
+  }
+  if (!saved || !Number.isInteger(saved.guesses) || saved.guesses < 0 || saved.guesses > 3) return;
+
+  guesses = saved.guesses;
+  complete = saved.complete === true;
+  if (!complete) {
+    if (guesses > 0) feedback.textContent = `Your previous guess is saved. Here’s frame ${Math.min(guesses + 1, 3)}.`;
+    return;
+  }
+
+  input.disabled = true;
+  $('#guessForm button').disabled = true;
+  feedback.className = `feedback ${saved.won ? 'success' : 'failure'}`;
+  feedback.textContent = 'This puzzle is already complete.';
+}
+
 function finish(won) {
   complete = true;
+  saveProgress(won);
   try { localStorage.setItem(`blrrdle-complete-${puzzle.number}`, 'true'); } catch { /* progress remains available this visit */ }
   input.disabled = true;
   $('#guessForm button').disabled = true;
@@ -188,6 +229,7 @@ async function submitGuess(value) {
   }
   triggerMissGlitch();
   guesses += 1;
+  saveProgress();
   input.value = '';
   hideSuggestions();
   if (guesses === 3) {
@@ -299,7 +341,7 @@ async function renderArchive() {
     list.replaceChildren(...puzzles.map((archivePuzzle) => {
     const item = document.createElement('li');
     const done = localStorage.getItem(`blrrdle-complete-${archivePuzzle.puzzle_number}`) === 'true';
-    const isToday = String(archivePuzzle.puzzle_number) === String(puzzle.number);
+    const isToday = String(archivePuzzle.puzzle_number) === todayPuzzleNumber;
     const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${archivePuzzle.puzzle_date}T00:00:00Z`));
     item.innerHTML = `<span>#${archivePuzzle.puzzle_number}</span><em>${date}${done ? ' · Completed' : ''}</em>`;
     if (isToday || !done) {
@@ -316,7 +358,7 @@ async function renderArchive() {
       item.append(play);
     }
     return item;
-  }));
+    }));
   } catch {
     list.innerHTML = '<li class="archive-empty">The archive is temporarily unavailable.</li>';
   }
@@ -335,9 +377,9 @@ $('#closeResult').addEventListener('click', () => $('#resultDialog').close());
 async function initialiseGame() {
   feedback.textContent = 'Loading today’s frame…';
   await loadLivePuzzle();
+  restoreProgress();
   updateFrame();
   restoreHint();
 }
 
 initialiseGame();
-
