@@ -57,6 +57,7 @@
       <footer><a class="image-credit" href="https://film-grab.com/" target="_blank" rel="noreferrer">Frames from Film Grab</a><a class="inspiration-credit" href="https://framed.wtf/" target="_blank" rel="noreferrer">Inspired by Framed.wtf</a></footer>
     </main>
     <div class="win-toast" id="winToast" role="status" aria-live="polite" hidden><span>✦</span> Correct</div>
+    <div class="loss-toast" id="lossToast" role="status" aria-live="polite" hidden><span>×</span><span id="lossToastText"></span></div>
     <div class="glitch-flash" id="glitchFlash" aria-hidden="true"></div>
 
     <dialog id="helpDialog">
@@ -75,8 +76,8 @@
     </dialog>
     <dialog class="result-dialog" id="resultDialog">
       <div class="success-splash" aria-hidden="true">✦</div>
-      <p class="eyebrow">Picture perfect</p>
-      <h2>You got it.</h2>
+      <p class="eyebrow" id="resultEyebrow">Picture perfect</p>
+      <h2 id="resultTitle">You got it.</h2>
       <p class="result-film" id="resultFilm"></p>
       <div class="player-stats">
         <div><strong id="streakValue">0</strong><span>day streak</span></div>
