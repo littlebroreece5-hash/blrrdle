@@ -308,7 +308,7 @@ async function renderArchive() {
 $('#archiveButton').addEventListener('click', () => { $('#archiveDialog').showModal(); renderArchive(); });
 $('#closeArchive').addEventListener('click', () => $('#archiveDialog').close());
 async function shareResult() {
-  const text = `Blrrdle ${puzzle.number}: ${Math.min(guesses + 1, 3)}/3 ✦`;
+  const text = `Blrrdle ${puzzle.number}: ${Math.min(guesses + 1, 3)}/3 ✦\nhttps://blrrdle.com`;
   try { await navigator.clipboard.writeText(text); return 'Copied'; } catch { return 'Copy unavailable'; }
 }
 $('#resultShare').addEventListener('click', async (event) => {
