@@ -275,3 +275,33 @@ async function initialiseGame() {
 }
 
 initialiseGame();
+function restoreHint() {
+  const key = `blrrdle-hint-${puzzle.number}`;
+  let savedHint;
+  try { savedHint = JSON.parse(localStorage.getItem(key)); } catch {
+    try { localStorage.removeItem(key); } catch { /* no saved hint */ }
+    return;
+  }
+  if (!savedHint?.type || !savedHint?.value) return;
+  const button = savedHint.type === 'year' ? $('#yearHint') : $('#genreHint');
+  const value = savedHint.type === 'year' ? $('#yearValue') : $('#genreValue');
+  value.textContent = String(savedHint.value);
+  lockHints(button);
+}
+document.querySelectorAll('.hint').forEach((button) => {
+  button.addEventListener('click', async (event) => {
+    event.stopImmediatePropagation();
+    const type = button.id === 'yearHint' ? 'year' : 'genre';
+    const target = type === 'year' ? $('#yearValue') : $('#genreValue');
+    try {
+      const result = await requestPuzzle('hint', type);
+      if (result?.value === undefined || result.value === null || result.value === '') throw new Error('Missing hint');
+      target.textContent = String(result.value);
+      localStorage.setItem(`blrrdle-hint-${puzzle.number}`, JSON.stringify({ type, value: String(result.value) }));
+      lockHints(button);
+    } catch {
+      feedback.className = 'feedback failure';
+      feedback.textContent = 'That hint could not be loaded. Please try again.';
+    }
+  }, { capture: true });
+});
