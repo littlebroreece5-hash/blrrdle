@@ -7,7 +7,16 @@ const dailyPuzzleEndpoint = 'https://qgomsmdzbxlujbtgebdw.supabase.co/functions/
 // hosted endpoint is temporarily unreachable while previewing the page locally.
 let puzzle = { number: String(puzzleNumber), title: '', year: '', genre: '', frames: ['', '', ''] };
 let usingLivePuzzle = false;
-const selectedArchivePuzzle = Number(new URLSearchParams(location.search).get('puzzle')) || null;
+let selectedArchivePuzzle = null;
+
+// Archive choices are intentionally one-time. A refresh always returns a player to today.
+try {
+  selectedArchivePuzzle = Number(sessionStorage.getItem('blrrdle-open-archive-puzzle')) || null;
+  sessionStorage.removeItem('blrrdle-open-archive-puzzle');
+} catch { /* session storage is optional */ }
+if (new URLSearchParams(location.search).has('puzzle')) {
+  history.replaceState(null, '', location.pathname);
+}
 
 // Suggestions are a public film-search starter list, not the private puzzle catalogue.
 const movieIndex = [
@@ -287,20 +296,27 @@ async function renderArchive() {
       list.innerHTML = '<li class="archive-empty">No past puzzles yet. Come back tomorrow.</li>';
       return;
     }
-    list.replaceChildren(...puzzles.map((puzzle) => {
+    list.replaceChildren(...puzzles.map((archivePuzzle) => {
     const item = document.createElement('li');
-    const done = localStorage.getItem(`blrrdle-complete-${puzzle.puzzle_number}`) === 'true';
-    const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${puzzle.puzzle_date}T00:00:00Z`));
-    item.innerHTML = `<span>#${puzzle.puzzle_number}</span><em>${date}${done ? ' · Completed' : ''}</em>`;
-    if (!done) {
+    const done = localStorage.getItem(`blrrdle-complete-${archivePuzzle.puzzle_number}`) === 'true';
+    const isToday = String(archivePuzzle.puzzle_number) === String(puzzle.number);
+    const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${archivePuzzle.puzzle_date}T00:00:00Z`));
+    item.innerHTML = `<span>#${archivePuzzle.puzzle_number}</span><em>${date}${done ? ' · Completed' : ''}</em>`;
+    if (isToday || !done) {
       const play = document.createElement('button');
       play.type = 'button';
-      play.textContent = 'Play';
-      play.addEventListener('click', () => { location.search = `?puzzle=${puzzle.puzzle_number}`; });
+      play.textContent = isToday ? 'Today' : 'Play';
+      play.addEventListener('click', () => {
+        try {
+          if (isToday) sessionStorage.removeItem('blrrdle-open-archive-puzzle');
+          else sessionStorage.setItem('blrrdle-open-archive-puzzle', String(archivePuzzle.puzzle_number));
+        } catch { /* session storage is optional */ }
+        location.assign(location.pathname);
+      });
       item.append(play);
     }
     return item;
-    }));
+  }));
   } catch {
     list.innerHTML = '<li class="archive-empty">The archive is temporarily unavailable.</li>';
   }
