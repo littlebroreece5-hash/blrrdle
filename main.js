@@ -116,8 +116,36 @@ const input = $('#guessInput');
 const feedback = $('#feedback');
 const frame = $('#filmFrame');
 const statsKey = 'frame-by-frame-player-stats';
-let playerStats = { wins: 0, plays: 0, streak: 0 };
+let playerStats = { wins: 0, plays: 0, streak: 0, lastDailyWin: null };
 try { playerStats = { ...playerStats, ...JSON.parse(localStorage.getItem(statsKey)) }; } catch { /* first visit or private browsing */ }
+
+function currentDayKey() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date());
+  const day = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${day.year}-${day.month}-${day.day}`;
+}
+
+function dayDistance(from, to) {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000);
+}
+
+function savePlayerStats() {
+  try { localStorage.setItem(statsKey, JSON.stringify(playerStats)); } catch { /* stats remain available this round */ }
+}
+
+function clearMissedDailyStreak() {
+  const todayKey = currentDayKey();
+  // Legacy saved stats did not record a date, so they cannot establish a
+  // consecutive streak. Clear them rather than carrying an unreliable count.
+  if (playerStats.streak && (!playerStats.lastDailyWin || dayDistance(playerStats.lastDailyWin, todayKey) > 1)) {
+    playerStats = { ...playerStats, streak: 0 };
+    savePlayerStats();
+  }
+}
+
+clearMissedDailyStreak();
 
 $('#puzzleNumber').textContent = `#${puzzle.number}`;
 
@@ -217,15 +245,27 @@ function finish(won) {
     : puzzle.title
       ? `Today’s film was <em>${puzzle.title}</em>.`
       : 'No luck today. A fresh puzzle arrives tomorrow.';
+  const isCurrentDailyPuzzle = String(puzzle.number) === todayPuzzleNumber;
   if (won) {
-    playerStats = { ...playerStats, wins: playerStats.wins + 1, plays: playerStats.plays + 1, streak: playerStats.streak + 1 };
-    try { localStorage.setItem(statsKey, JSON.stringify(playerStats)); } catch { /* stats remain available this round */ }
+    playerStats = { ...playerStats, wins: playerStats.wins + 1, plays: playerStats.plays + 1 };
+    if (isCurrentDailyPuzzle) {
+      const todayKey = currentDayKey();
+      const consecutive = playerStats.lastDailyWin && dayDistance(playerStats.lastDailyWin, todayKey) === 1;
+      playerStats = {
+        ...playerStats,
+        streak: playerStats.lastDailyWin === todayKey ? playerStats.streak : (consecutive ? playerStats.streak + 1 : 1),
+        lastDailyWin: todayKey,
+      };
+    }
+    savePlayerStats();
     $('#winToast').hidden = false;
     playWinSound();
     window.setTimeout(() => { $('#winToast').hidden = true; showResult(); }, 1000);
   } else {
-    playerStats = { ...playerStats, plays: playerStats.plays + 1, streak: 0 };
-    try { localStorage.setItem(statsKey, JSON.stringify(playerStats)); } catch { /* stats remain available this round */ }
+    playerStats = { ...playerStats, plays: playerStats.plays + 1 };
+    // An archived miss must never erase a current-day streak.
+    if (isCurrentDailyPuzzle) playerStats = { ...playerStats, streak: 0, lastDailyWin: null };
+    savePlayerStats();
     $('#lossToastText').textContent = puzzle.title ? `The answer: ${puzzle.title}` : 'Out of guesses.';
     $('#lossToast').hidden = false;
     window.setTimeout(() => { $('#lossToast').hidden = true; showResult(); }, 1000);
