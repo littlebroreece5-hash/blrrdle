@@ -29,11 +29,11 @@ try { playerStats = { ...playerStats, ...JSON.parse(localStorage.getItem(statsKe
 
 $('#puzzleNumber').textContent = `#${puzzle.number}`;
 
-async function requestPuzzle(action, value) {
+async function requestPuzzle(action, value, extra = {}) {
   const response = await fetch(dailyPuzzleEndpoint, {
     method: action ? 'POST' : 'GET',
     headers: action ? { 'Content-Type': 'application/json' } : undefined,
-    body: action ? JSON.stringify({ action, value, puzzleNumber: selectedArchivePuzzle }) : undefined,
+    body: action ? JSON.stringify({ action, value, puzzleNumber: selectedArchivePuzzle, ...extra }) : undefined,
   });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.error || 'Unable to load today’s puzzle.');
@@ -94,6 +94,9 @@ function finish(won) {
   } else {
     playerStats = { ...playerStats, plays: playerStats.plays + 1, streak: 0 };
     try { localStorage.setItem(statsKey, JSON.stringify(playerStats)); } catch { /* stats remain available this round */ }
+    $('#lossToastText').textContent = puzzle.title ? `The answer: ${puzzle.title}` : 'Out of guesses.';
+    $('#lossToast').hidden = false;
+    window.setTimeout(() => { $('#lossToast').hidden = true; showResult(); }, 1000);
   }
 }
 
@@ -122,6 +125,8 @@ function playWinSound() {
 }
 
 function showResult() {
+  $('#resultEyebrow').textContent = complete && guesses === 3 ? 'Final frame' : 'Picture perfect';
+  $('#resultTitle').textContent = complete && guesses === 3 ? 'The answer was.' : 'You got it.';
   $('#resultFilm').textContent = `${puzzle.title} · ${guesses + 1}/3`;
   $('#streakValue').textContent = playerStats.streak;
   $('#winRateValue').textContent = `${Math.round((playerStats.wins / playerStats.plays) * 100)}%`;
@@ -139,7 +144,7 @@ async function submitGuess(value) {
   let correct = normalize(value) === normalize(puzzle.title);
   try {
     if (usingLivePuzzle) {
-      const result = await requestPuzzle('guess', value);
+      const result = await requestPuzzle('guess', value, { attempt: guesses + 1 });
       correct = result.correct;
       if (result.title) puzzle.title = result.title;
       else if (result.correct) puzzle.title = value.trim();
@@ -266,7 +271,8 @@ async function renderArchive() {
     list.replaceChildren(...puzzles.map((puzzle) => {
     const item = document.createElement('li');
     const done = localStorage.getItem(`blrrdle-complete-${puzzle.puzzle_number}`) === 'true';
-    item.innerHTML = `<span>#${puzzle.puzzle_number}</span><em>${done ? 'Completed' : 'Unplayed'}</em>`;
+    const date = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${puzzle.puzzle_date}T00:00:00Z`));
+    item.innerHTML = `<span>#${puzzle.puzzle_number}</span><em>${date}${done ? ' · Completed' : ''}</em>`;
     if (!done) {
       const play = document.createElement('button');
       play.type = 'button';
