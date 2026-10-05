@@ -62,7 +62,7 @@ function normalize(value) {
 
 function updateFrame() {
   frame.className = `film-frame reveal-${Math.min(guesses + 1, 3)}`;
-  frame.style.backgroundImage = `url("${puzzle.frames[Math.min(guesses, 2)]}")`;
+  frame.style.backgroundImage = `url("${puzzle.frames[0]}")`;
   frame.style.backgroundPosition = guesses === 0 ? 'center' : guesses === 1 ? '45% center' : '55% center';
   $('#frameCount').textContent = Math.min(guesses + 1, 3);
   $('#frameStatus').textContent = guesses === 0 ? 'Look closely.' : guesses === 1 ? 'A little more to go on.' : 'Last look.';
