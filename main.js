@@ -127,7 +127,7 @@ function playWinSound() {
 function showResult() {
   $('#resultEyebrow').textContent = complete && guesses === 3 ? 'Final frame' : 'Picture perfect';
   $('#resultTitle').textContent = complete && guesses === 3 ? 'The answer was.' : 'You got it.';
-  $('#resultFilm').textContent = `${puzzle.title} · ${guesses + 1}/3`;
+  $('#resultFilm').textContent = `${puzzle.title} · ${Math.min(guesses + 1, 3)}/3`;
   $('#streakValue').textContent = playerStats.streak;
   $('#winRateValue').textContent = `${Math.round((playerStats.wins / playerStats.plays) * 100)}%`;
   $('#resultDialog').showModal();
@@ -289,7 +289,7 @@ async function renderArchive() {
 $('#archiveButton').addEventListener('click', () => { $('#archiveDialog').showModal(); renderArchive(); });
 $('#closeArchive').addEventListener('click', () => $('#archiveDialog').close());
 async function shareResult() {
-  const text = `Blrrdle ${puzzle.number}: ${guesses + 1}/3 ✦`;
+  const text = `Blrrdle ${puzzle.number}: ${Math.min(guesses + 1, 3)}/3 ✦`;
   try { await navigator.clipboard.writeText(text); return 'Copied'; } catch { return 'Copy unavailable'; }
 }
 $('#resultShare').addEventListener('click', async (event) => {
