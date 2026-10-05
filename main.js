@@ -7,6 +7,7 @@ const dailyPuzzleEndpoint = 'https://qgomsmdzbxlujbtgebdw.supabase.co/functions/
 // hosted endpoint is temporarily unreachable while previewing the page locally.
 let puzzle = { number: String(puzzleNumber), title: '', year: '', genre: '', frames: ['', '', ''] };
 let usingLivePuzzle = false;
+const selectedArchivePuzzle = Number(new URLSearchParams(location.search).get('puzzle')) || null;
 
 // Suggestions are a public film-search starter list, not the private puzzle catalogue.
 const movieIndex = [
@@ -32,7 +33,7 @@ async function requestPuzzle(action, value) {
   const response = await fetch(dailyPuzzleEndpoint, {
     method: action ? 'POST' : 'GET',
     headers: action ? { 'Content-Type': 'application/json' } : undefined,
-    body: action ? JSON.stringify({ action, value }) : undefined,
+    body: action ? JSON.stringify({ action, value, puzzleNumber: selectedArchivePuzzle }) : undefined,
   });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.error || 'Unable to load today’s puzzle.');
@@ -41,7 +42,9 @@ async function requestPuzzle(action, value) {
 
 async function loadLivePuzzle() {
   try {
-    const livePuzzle = await requestPuzzle();
+    const response = await fetch(`${dailyPuzzleEndpoint}${selectedArchivePuzzle ? `?puzzle=${selectedArchivePuzzle}` : ''}`);
+    const livePuzzle = await response.json();
+    if (!response.ok) throw new Error(livePuzzle.error || 'Unable to load puzzle.');
     puzzle = { ...puzzle, number: String(livePuzzle.number), frames: [livePuzzle.frameUrl, '', ''] };
     usingLivePuzzle = true;
     $('#puzzleNumber').textContent = `#${puzzle.number}`;
@@ -50,6 +53,7 @@ async function loadLivePuzzle() {
     feedback.className = 'feedback failure';
     feedback.textContent = 'Today’s frame is unavailable. Please try again shortly.';
   }
+  if (!usingLivePuzzle) document.querySelectorAll('.hint').forEach((hint) => { hint.disabled = true; });
 }
 
 function normalize(value) {
@@ -70,6 +74,7 @@ function updateFrame() {
 
 function finish(won) {
   complete = true;
+  try { localStorage.setItem(`blrrdle-complete-${puzzle.number}`, 'true'); } catch { /* progress remains available this visit */ }
   input.disabled = true;
   $('#guessForm button').disabled = true;
   hideSuggestions();
@@ -157,12 +162,6 @@ async function submitGuess(value) {
   } else {
     feedback.className = 'feedback';
     feedback.textContent = `Not quite. Here’s frame ${guesses + 1}.`;
-    if (usingLivePuzzle) {
-      try {
-        const nextFrame = await requestPuzzle('frame', guesses + 1);
-        puzzle.frames[guesses] = nextFrame.frameUrl;
-      } catch { /* retain the first frame if the connection is interrupted */ }
-    }
     updateFrame();
     input.focus();
   }
@@ -202,61 +201,86 @@ input.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') hideSuggestions();
 });
 
-function lockHints(chosenHint, hintType) {
+function lockHints(chosenHint) {
   document.querySelectorAll('.hint').forEach((hint) => {
     hint.disabled = true;
     hint.classList.toggle('chosen', hint === chosenHint);
   });
-  if (hintType) {
-    try { localStorage.setItem(`blrrdle-hint-${puzzle.number}`, hintType); } catch { /* private browsing: lock remains for this visit */ }
+}
+
+function saveHint(type, value) {
+  try { localStorage.setItem(`blrrdle-hint-${puzzle.number}`, JSON.stringify({ type, value })); } catch { /* private browsing: value remains visible this visit */ }
+}
+
+async function revealHint(type, button, valueElement) {
+  if (!usingLivePuzzle) {
+    feedback.className = 'feedback failure';
+    feedback.textContent = 'Hints are unavailable until today\'s frame has loaded.';
+    return;
+  }
+  try {
+    const result = await requestPuzzle('hint', type);
+    const value = result?.value;
+    if (value === undefined || value === null || value === '') throw new Error('Missing hint value');
+    puzzle[type] = String(value);
+    valueElement.textContent = puzzle[type];
+    lockHints(button);
+    saveHint(type, puzzle[type]);
+  } catch {
+    feedback.className = 'feedback failure';
+    feedback.textContent = 'That hint could not be loaded. Please try again.';
   }
 }
 
-$('#yearHint').addEventListener('click', async (event) => {
-  if (usingLivePuzzle) {
-    try { puzzle.year = String((await requestPuzzle('hint', 'year')).value); } catch { return; }
-  }
-  lockHints(event.currentTarget, 'year');
-  $('#yearValue').textContent = puzzle.year;
-});
-$('#genreHint').addEventListener('click', async (event) => {
-  if (usingLivePuzzle) {
-    try { puzzle.genre = String((await requestPuzzle('hint', 'genre')).value); } catch { return; }
-  }
-  lockHints(event.currentTarget, 'genre');
-  $('#genreValue').textContent = puzzle.genre;
-});
+$('#yearHint').addEventListener('click', (event) => revealHint('year', event.currentTarget, $('#yearValue')));
+$('#genreHint').addEventListener('click', (event) => revealHint('genre', event.currentTarget, $('#genreValue')));
 
 function restoreHint() {
-  let chosenHint;
-  try { chosenHint = localStorage.getItem(`blrrdle-hint-${puzzle.number}`); } catch { return; }
-  if (chosenHint === 'year') {
-    $('#yearValue').textContent = puzzle.year;
-    lockHints($('#yearHint'));
+  let savedHint;
+  const storageKey = `blrrdle-hint-${puzzle.number}`;
+  try { savedHint = JSON.parse(localStorage.getItem(storageKey)); } catch {
+    try { localStorage.removeItem(storageKey); } catch { /* nothing to restore */ }
+    return;
   }
-  if (chosenHint === 'genre') {
-    $('#genreValue').textContent = puzzle.genre;
-    lockHints($('#genreHint'));
-  }
+  if (!savedHint || !['year', 'genre'].includes(savedHint.type) || !savedHint.value) return;
+  puzzle[savedHint.type] = String(savedHint.value);
+  const valueElement = savedHint.type === 'year' ? $('#yearValue') : $('#genreValue');
+  const button = savedHint.type === 'year' ? $('#yearHint') : $('#genreHint');
+  valueElement.textContent = puzzle[savedHint.type];
+  lockHints(button);
 }
 
 $('#helpButton').addEventListener('click', () => $('#helpDialog').showModal());
 $('#closeHelp').addEventListener('click', () => $('#helpDialog').close());
 $('#startButton').addEventListener('click', () => { $('#helpDialog').close(); input.focus(); });
-function renderArchive() {
+async function renderArchive() {
   const list = $('#archiveList');
-  const pastCount = puzzleNumber - 1;
-  if (!pastCount) {
-    list.innerHTML = '<li class="archive-empty">Puzzle #1 is the first entry. Come back tomorrow for the archive.</li>';
-    return;
-  }
-  list.replaceChildren(...Array.from({ length: pastCount }, (_, index) => {
+  list.innerHTML = '<li class="archive-empty">Loading past puzzles…</li>';
+  try {
+    const archive = await requestPuzzle('archive');
+    const puzzles = archive.puzzles ?? [];
+    if (!puzzles.length) {
+      list.innerHTML = '<li class="archive-empty">No past puzzles yet. Come back tomorrow.</li>';
+      return;
+    }
+    list.replaceChildren(...puzzles.map((puzzle) => {
     const item = document.createElement('li');
-    item.innerHTML = `<span>#${index + 1}</span><strong>Archived puzzle</strong><em>Completed</em>`;
+    const done = localStorage.getItem(`blrrdle-complete-${puzzle.puzzle_number}`) === 'true';
+    item.innerHTML = `<span>#${puzzle.puzzle_number}</span><strong>${puzzle.title}</strong><em>${done ? 'Completed' : puzzle.puzzle_date}</em>`;
+    if (!done) {
+      const play = document.createElement('button');
+      play.type = 'button';
+      play.textContent = 'Play';
+      play.addEventListener('click', () => { location.search = `?puzzle=${puzzle.puzzle_number}`; });
+      item.append(play);
+    }
     return item;
-  }));
+    }));
+  } catch {
+    list.innerHTML = '<li class="archive-empty">The archive is temporarily unavailable.</li>';
+  }
 }
-$('#archiveButton').addEventListener('click', () => { renderArchive(); $('#archiveDialog').showModal(); });
+$('#archiveButton').addEventListener('click', () => { $('#archiveDialog').showModal(); renderArchive(); });
 $('#closeArchive').addEventListener('click', () => $('#archiveDialog').close());
 async function shareResult() {
   const text = `Blrrdle ${puzzle.number}: ${guesses + 1}/3 ✦`;
@@ -275,33 +299,4 @@ async function initialiseGame() {
 }
 
 initialiseGame();
-function restoreHint() {
-  const key = `blrrdle-hint-${puzzle.number}`;
-  let savedHint;
-  try { savedHint = JSON.parse(localStorage.getItem(key)); } catch {
-    try { localStorage.removeItem(key); } catch { /* no saved hint */ }
-    return;
-  }
-  if (!savedHint?.type || !savedHint?.value) return;
-  const button = savedHint.type === 'year' ? $('#yearHint') : $('#genreHint');
-  const value = savedHint.type === 'year' ? $('#yearValue') : $('#genreValue');
-  value.textContent = String(savedHint.value);
-  lockHints(button);
-}
-document.querySelectorAll('.hint').forEach((button) => {
-  button.addEventListener('click', async (event) => {
-    event.stopImmediatePropagation();
-    const type = button.id === 'yearHint' ? 'year' : 'genre';
-    const target = type === 'year' ? $('#yearValue') : $('#genreValue');
-    try {
-      const result = await requestPuzzle('hint', type);
-      if (result?.value === undefined || result.value === null || result.value === '') throw new Error('Missing hint');
-      target.textContent = String(result.value);
-      localStorage.setItem(`blrrdle-hint-${puzzle.number}`, JSON.stringify({ type, value: String(result.value) }));
-      lockHints(button);
-    } catch {
-      feedback.className = 'feedback failure';
-      feedback.textContent = 'That hint could not be loaded. Please try again.';
-    }
-  }, { capture: true });
-});
+
