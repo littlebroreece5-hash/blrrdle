@@ -115,6 +115,7 @@ const $ = (selector) => document.querySelector(selector);
 const input = $('#guessInput');
 const feedback = $('#feedback');
 const frame = $('#filmFrame');
+const analyticsIdKey = 'blrrdle-anonymous-player-id';
 const statsKey = 'frame-by-frame-player-stats';
 let playerStats = { wins: 0, plays: 0, streak: 0, lastDailyWin: null };
 try { playerStats = { ...playerStats, ...JSON.parse(localStorage.getItem(statsKey)) }; } catch { /* first visit or private browsing */ }
@@ -146,6 +147,19 @@ function clearMissedDailyStreak() {
 }
 
 clearMissedDailyStreak();
+
+function analyticsPlayerId() {
+  try {
+    let id = localStorage.getItem(analyticsIdKey);
+    if (!id) {
+      id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem(analyticsIdKey, id);
+    }
+    return id;
+  } catch {
+    return null;
+  }
+}
 
 $('#puzzleNumber').textContent = `#${puzzle.number}`;
 
@@ -206,7 +220,7 @@ function progressKey() {
 
 function saveProgress(won = null) {
   try {
-    localStorage.setItem(progressKey(), JSON.stringify({ guesses, complete, won }));
+    localStorage.setItem(progressKey(), JSON.stringify({ guesses, complete, won, title: puzzle.title }));
   } catch { /* progress remains available this visit */ }
 }
 
@@ -227,8 +241,10 @@ function restoreProgress() {
 
   input.disabled = true;
   $('#guessForm button').disabled = true;
+  if (saved.title) puzzle.title = String(saved.title);
   feedback.className = `feedback ${saved.won ? 'success' : 'failure'}`;
   feedback.textContent = 'This puzzle is already complete.';
+  if (String(puzzle.number) === todayPuzzleNumber) window.setTimeout(showResult, 0);
 }
 
 function finish(won) {
@@ -303,6 +319,24 @@ function showResult() {
   $('#streakValue').textContent = playerStats.streak;
   $('#winRateValue').textContent = `${Math.round((playerStats.wins / playerStats.plays) * 100)}%`;
   $('#resultDialog').showModal();
+  updateGlobalScore();
+}
+
+async function updateGlobalScore() {
+  if (!usingLivePuzzle) return;
+  try {
+    const result = await requestPuzzle('stats', null, { puzzleNumber: puzzle.number });
+    const counts = [1, 2, 3].map((guess) => Number(result.guesses?.[guess - 1]) || 0);
+    const highest = Math.max(1, ...counts);
+    counts.forEach((count, index) => {
+      $(`#guessBar${index + 1}`).style.setProperty('--bar', `${Math.round((count / highest) * 100)}%`);
+      $(`#guessCount${index + 1}`).textContent = count;
+    });
+    $('#globalScoreMeta').textContent = `${Number(result.totalWinners) || 0} recorded winners`;
+    $('#scoreBars').setAttribute('aria-label', `Correct guess distribution: ${counts[0]} in one guess, ${counts[1]} in two guesses, ${counts[2]} in three guesses.`);
+  } catch {
+    $('#globalScoreMeta').textContent = 'Results unavailable';
+  }
 }
 
 function hideSuggestions() {
@@ -316,7 +350,7 @@ async function submitGuess(value) {
   let correct = normalize(value) === normalize(puzzle.title);
   try {
     if (usingLivePuzzle) {
-      const result = await requestPuzzle('guess', value, { attempt: guesses + 1 });
+      const result = await requestPuzzle('guess', value, { attempt: guesses + 1, playerId: analyticsPlayerId() });
       correct = result.correct;
       if (result.title) puzzle.title = result.title;
       else if (result.correct) puzzle.title = value.trim();
