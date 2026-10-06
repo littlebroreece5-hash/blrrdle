@@ -274,9 +274,16 @@ function finish(won) {
       };
     }
     savePlayerStats();
+    const firstGuess = guesses === 0;
+    $('#winToast').classList.toggle('first-guess', firstGuess);
     $('#winToast').hidden = false;
-    playWinSound();
-    window.setTimeout(() => { $('#winToast').hidden = true; showResult(); }, 1000);
+    if (firstGuess) {
+      triggerFirstGuessCelebration();
+      playFirstGuessSound();
+    } else {
+      playWinSound();
+    }
+    window.setTimeout(() => { $('#winToast').hidden = true; showResult(); }, 2000);
   } else {
     playerStats = { ...playerStats, plays: playerStats.plays + 1 };
     // An archived miss must never erase a current-day streak.
@@ -284,14 +291,23 @@ function finish(won) {
     savePlayerStats();
     $('#lossToastText').textContent = puzzle.title ? `The answer: ${puzzle.title}` : 'Out of guesses.';
     $('#lossToast').hidden = false;
-    window.setTimeout(() => { $('#lossToast').hidden = true; showResult(); }, 1000);
+    window.setTimeout(() => { $('#lossToast').hidden = true; showResult(); }, 2000);
   }
 }
 
-function playWinSound() {
+let feedbackAudioContext;
+
+function getFeedbackAudioContext() {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
-  const context = new AudioContext();
+  if (!AudioContext) return null;
+  if (!feedbackAudioContext || feedbackAudioContext.state === 'closed') feedbackAudioContext = new AudioContext();
+  if (feedbackAudioContext.state === 'suspended') feedbackAudioContext.resume().catch(() => {});
+  return feedbackAudioContext;
+}
+
+function playWinSound() {
+  const context = getFeedbackAudioContext();
+  if (!context) return;
   const scheduleClicks = () => {
     const now = context.currentTime + .03;
     [0, .16, .32, .52, .72].forEach((offset, index) => {
@@ -306,10 +322,53 @@ function playWinSound() {
       oscillator.connect(gain).connect(context.destination);
       oscillator.start(now + offset); oscillator.stop(now + offset + .14);
     });
-    window.setTimeout(() => context.close(), 1200);
   };
-  if (context.state === 'suspended') context.resume().then(scheduleClicks).catch(() => context.close());
+  if (context.state === 'suspended') context.resume().then(scheduleClicks).catch(() => {});
   else scheduleClicks();
+}
+
+function playFirstGuessSound() {
+  const context = getFeedbackAudioContext();
+  if (!context) return;
+  const scheduleFanfare = () => {
+    const now = context.currentTime + .02;
+    [523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = index === 3 ? 'sine' : 'triangle';
+      oscillator.frequency.setValueAtTime(frequency, now + index * .11);
+      gain.gain.setValueAtTime(.0001, now + index * .11);
+      gain.gain.exponentialRampToValueAtTime(index === 3 ? .2 : .12, now + index * .11 + .018);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + index * .11 + .34);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(now + index * .11); oscillator.stop(now + index * .11 + .36);
+    });
+  };
+  if (context.state === 'suspended') context.resume().then(scheduleFanfare).catch(() => {});
+  else scheduleFanfare();
+}
+
+function playMissSound() {
+  const context = getFeedbackAudioContext();
+  if (!context) return;
+  const scheduleHum = () => {
+    const now = context.currentTime + .01;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const filter = context.createBiquadFilter();
+    oscillator.type = 'sawtooth';
+    oscillator.frequency.setValueAtTime(118, now);
+    oscillator.frequency.exponentialRampToValueAtTime(72, now + .22);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(330, now);
+    gain.gain.setValueAtTime(.0001, now);
+    gain.gain.exponentialRampToValueAtTime(.055, now + .025);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + .27);
+    oscillator.connect(filter).connect(gain).connect(context.destination);
+    oscillator.start(now); oscillator.stop(now + .29);
+  };
+  if (context.state === 'suspended') context.resume().then(scheduleHum).catch(() => {});
+  else scheduleHum();
 }
 
 function showResult() {
@@ -364,6 +423,7 @@ async function submitGuess(value) {
     finish(true);
     return;
   }
+  playMissSound();
   triggerMissGlitch();
   guesses += 1;
   saveProgress();
@@ -387,6 +447,14 @@ function triggerMissGlitch() {
   window.setTimeout(() => flash.classList.remove('active'), 420);
 }
 
+function triggerFirstGuessCelebration() {
+  const flash = $('#rainbowFlash');
+  flash.classList.remove('active');
+  void flash.offsetWidth;
+  flash.classList.add('active');
+  window.setTimeout(() => flash.classList.remove('active'), 920);
+}
+
 function showSuggestions(query) {
   const list = $('#suggestions');
   const matches = movieIndex.filter(([title]) => title.toLowerCase().includes(query.toLowerCase())).slice(0, 3);
@@ -396,7 +464,10 @@ function showSuggestions(query) {
     const button = document.createElement('button');
     button.type = 'button';
     button.innerHTML = `${title} <span>${year}</span>`;
-    button.addEventListener('click', () => submitGuess(title));
+    button.addEventListener('click', () => {
+      getFeedbackAudioContext();
+      submitGuess(title);
+    });
     item.append(button);
     return item;
   }));
@@ -405,6 +476,7 @@ function showSuggestions(query) {
 
 $('#guessForm').addEventListener('submit', (event) => {
   event.preventDefault();
+  getFeedbackAudioContext();
   submitGuess(input.value);
 });
 
