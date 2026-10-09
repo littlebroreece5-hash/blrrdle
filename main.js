@@ -577,11 +577,11 @@ function showSuggestions(query) {
     })
     .slice(0, 3);
   if (!cleanedQuery || !matches.length || complete) return hideSuggestions();
-  list.replaceChildren(...matches.map(([title, year]) => {
+  list.replaceChildren(...matches.map(([title]) => {
     const item = document.createElement('li');
     const button = document.createElement('button');
     button.type = 'button';
-    button.innerHTML = `${title} <span>${year}</span>`;
+    button.textContent = title;
     button.addEventListener('click', () => {
       getFeedbackAudioContext();
       submitGuess(title);
