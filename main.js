@@ -109,6 +109,73 @@ movieIndex.push(
   ['Working Girl', '1988'], ['The World’s End', '2013'], ['X', '2022'], ['Young Frankenstein', '1974']
 );
 
+
+// Keep exact puzzle-answer forms in the client suggestion index. This is
+// intentionally separate from the broader movie search pool: a franchise or
+// alternate title must never displace the answer accepted by the daily puzzle.
+const puzzleAnswerIndex = [
+  ['A Space Odyssey', '1968'], ['The Game', '1997'], ['The Godfather', '1972'],
+  ['The Prestige', '2006'], ['Lady Bird', '2017'], ['Blade Runner', '1982'],
+  ['Parasite', '2019'], ['The Matrix', '1999'], ['The Grand Budapest Hotel', '2014'],
+  ['Get Out', '2017'],
+];
+
+// A deeper English-language search pool keeps suggestions useful without
+// exposing a puzzle catalogue in the game interface.
+movieIndex.push(
+  ['A Few Good Men', '1992'], ['A History of Violence', '2005'], ['A Simple Plan', '1998'],
+  ['Airplane!', '1980'], ['Almost Famous', '2000'], ['American Graffiti', '1973'],
+  ['Argo', '2012'], ['Babe', '1995'], ['Batman Begins', '2005'], ['Beverly Hills Cop', '1984'],
+  ['Big Fish', '2003'], ['Black Panther', '2018'], ['Blood Simple', '1984'], ['Boyhood', '2014'],
+  ['Bridesmaids', '2011'], ['The Bridge on the River Kwai', '1957'], ['Casino', '1995'],
+  ['The Color Purple', '1985'], ['Contact', '1997'], ['The Crow', '1994'],
+  ['The Curious Case of Benjamin Button', '2008'], ['The Deer Hunter', '1978'],
+  ['The Descendants', '2011'], ['The Disaster Artist', '2017'], ['Doctor Sleep', '2019'],
+  ['Drag Me to Hell', '2009'], ['Easy Rider', '1969'], ['Election', '1999'],
+  ['Escape from New York', '1981'], ['Fantastic Mr. Fox', '2009'], ['Field of Dreams', '1989'],
+  ['The Fighter', '2010'], ['Finding Nemo', '2003'], ['The Firm', '1993'],
+  ['The Founder', '2016'], ['Frozen', '2013'], ['The Goonies', '1985'],
+  ['Gran Torino', '2008'], ['The Green Mile', '1999'], ['Grease', '1978'],
+  ['The Green Knight', '2021'], ['The Greatest Showman', '2017'], ['Hairspray', '2007'],
+  ['The Hangover', '2009'], ['The Haunting', '1963'], ['The Help', '2011'],
+  ['Hidden Figures', '2016'], ['The Hobbit: An Unexpected Journey', '2012'],
+  ['Hocus Pocus', '1993'], ['Hustlers', '2019'], ['The Illusionist', '2006'],
+  ['In Bruges', '2008'], ['Independence Day', '1996'], ['The Incredibles', '2004'],
+  ['The Insider', '1999'], ['It Follows', '2014'], ['Jackass: The Movie', '2002'],
+  ['Jerry Maguire', '1996'], ['John Wick', '2014'], ['The Jungle Book', '1967'],
+  ['The Karate Kid', '1984'], ['The Kids Are All Right', '2010'], ['King Richard', '2021'],
+  ['The Last Duel', '2021'], ['The Last of the Mohicans', '1992'], ['The Lion King', '1994'],
+  ['The Little Mermaid', '1989'], ['The Lobster', '2015'], ['The Long Goodbye', '1973'],
+  ['The Lost Boys', '1987'], ['The Martian', '2015'], ['The Mask', '1994'],
+  ['Master and Commander: The Far Side of the World', '2003'], ['Me Before You', '2016'],
+  ['Meet the Parents', '2000'], ['Men in Black', '1997'], ['The Menu', '2022'],
+  ['The Muppet Movie', '1979'], ['Mystic River', '2003'], ['National Treasure', '2004'],
+  ['The Northman', '2022'], ['The Number 23', '2007'], ['The OA', 'N/A'],
+  ['The Odd Couple', '1968'], ['Office Space', '1999'], ['The Old Guard', '2020'],
+  ['The Other Guys', '2010'], ['The Patriot', '2000'], ['The Post', '2017'],
+  ['The Proposal', '2009'], ['The Pursuit of Happyness', '2006'], ['The Quick and the Dead', '1995'],
+  ['The Rock', '1996'], ['The Rocketeer', '1991'], ['The Room', '2003'],
+  ['The Rookie', '2002'], ['The Sandlot', '1993'], ['The Score', '2001'],
+  ['The Sea of Trees', '2015'], ['The Shape of Water', '2017'], ['The Skeleton Key', '2005'],
+  ['The Smashing Machine', '2026'], ['The Spectacular Now', '2013'], ['The Spiderwick Chronicles', '2008'],
+  ['The Talented Mr. Ripley', '1999'], ['The Town', '2010'], ['The Transporter', '2002'],
+  ['The Trial of the Chicago 7', '2020'], ['The Usual Suspects', '1995'], ['The Verdict', '1982'],
+  ['The Virgin Suicides', '1999'], ['The Visitor', '2007'], ['The Waterboy', '1998'],
+  ['The Way Back', '2010'], ['The West Wing', 'N/A'], ['The Wrestler', '2008'],
+  ['The Wrong Man', '1956'], ['The Young Victoria', '2009'], ['Thelma', '2017'],
+  ['True Grit', '2010'], ['Twister', '1996'], ['Up', '2009'], ['War Dogs', '2016'],
+  ['War of the Worlds', '2005'], ['We’re the Millers', '2013'], ['When Harry Met Sally...', '1989'],
+  ['Where the Wild Things Are', '2009'], ['Who Framed Roger Rabbit', '1988'], ['Wind River', '2017'],
+  ['The Woman in Black', '2012'], ['Wonder Woman', '2017'], ['World War Z', '2013'], ['Zombieland', '2009']
+);
+
+const indexedMovieTitles = new Map();
+[...movieIndex, ...puzzleAnswerIndex].forEach(([title, year]) => {
+  const key = normalize(title);
+  if (!indexedMovieTitles.has(key)) indexedMovieTitles.set(key, [title, year]);
+});
+const searchableMovieIndex = [...indexedMovieTitles.values()];
+
 let guesses = 0;
 let complete = false;
 const $ = (selector) => document.querySelector(selector);
