@@ -114,10 +114,14 @@ movieIndex.push(
 // intentionally separate from the broader movie search pool: a franchise or
 // alternate title must never displace the answer accepted by the daily puzzle.
 const puzzleAnswerIndex = [
-  ['A Space Odyssey', '1968'], ['The Game', '1997'], ['The Godfather', '1972'],
-  ['The Prestige', '2006'], ['Lady Bird', '2017'], ['Blade Runner', '1982'],
-  ['Parasite', '2019'], ['The Matrix', '1999'], ['The Grand Budapest Hotel', '2014'],
-  ['Get Out', '2017'],
+  ['Alien', '1979'], ['Lady Bird', '2017'], ['Moonlight', '2016'],
+  ['The Prestige', '2006'], ['Blade Runner', '1982'], ['28 Days Later', '2002'],
+  ['The Grand Budapest Hotel', '2014'], ['The Matrix', '1999'], ['12 Angry Men', '1957'],
+  ['Barry Lyndon', '1975'], ['A Clockwork Orange', '1971'], ['A Serious Man', '2009'],
+  ['The Hunger', '1983'], ['The Godfather', '1972'], ['Get Out', '2017'],
+  ['Jurassic Park', '1993'], ['Full Metal Jacket', '1987'], ['2001: A Space Odyssey', '1968'],
+  ['A Space Odyssey', '1968'], ['500 Days of Summer', '2009'], ['(500) Days of Summer', '2009'],
+  ['Parasite', '2019'],
 ];
 
 // A deeper English-language search pool keeps suggestions useful without
