@@ -490,8 +490,8 @@ async function updateGlobalScore() {
   try {
     const result = await requestPuzzle('stats', null, { puzzleNumber: puzzle.number });
     const winnerCounts = [1, 2, 3].map((guess) => Number(result.guesses?.[guess - 1]) || 0);
-    // The function counts each finished daily puzzle once per player, so this
-    // includes both the three winning buckets and players who ran out of guesses.
+    // The server counts distinct anonymous players who made at least one guess,
+    // so this includes winners and players who used all three guesses.
     const totalPlays = Number(result.totalPlays) || 0;
     const counts = [...winnerCounts, totalPlays];
     const highest = Math.max(1, ...counts);
@@ -500,7 +500,7 @@ async function updateGlobalScore() {
       $(`#guessCount${index + 1}`).textContent = count;
     });
     $('#globalScoreMeta').textContent = `${totalPlays} recorded plays`;
-    $('#scoreBars').setAttribute('aria-label', `Daily results: ${winnerCounts[0]} wins in one guess, ${winnerCounts[1]} wins in two guesses, ${winnerCounts[2]} wins in three guesses, and ${totalPlays} total completed plays including losses.`);
+    $('#scoreBars').setAttribute('aria-label', `Daily results: ${winnerCounts[0]} wins in one guess, ${winnerCounts[1]} wins in two guesses, ${winnerCounts[2]} wins in three guesses, and ${totalPlays} total plays after at least one guess, including losses.`);
   } catch {
     $('#globalScoreMeta').textContent = 'Results unavailable';
   }
