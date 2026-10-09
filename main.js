@@ -489,14 +489,18 @@ async function updateGlobalScore() {
   if (!usingLivePuzzle) return;
   try {
     const result = await requestPuzzle('stats', null, { puzzleNumber: puzzle.number });
-    const counts = [1, 2, 3].map((guess) => Number(result.guesses?.[guess - 1]) || 0);
+    const winnerCounts = [1, 2, 3].map((guess) => Number(result.guesses?.[guess - 1]) || 0);
+    // The function counts each finished daily puzzle once per player, so this
+    // includes both the three winning buckets and players who ran out of guesses.
+    const totalPlays = Number(result.totalPlays) || 0;
+    const counts = [...winnerCounts, totalPlays];
     const highest = Math.max(1, ...counts);
     counts.forEach((count, index) => {
       $(`#guessBar${index + 1}`).style.setProperty('--bar', `${Math.round((count / highest) * 100)}%`);
       $(`#guessCount${index + 1}`).textContent = count;
     });
-    $('#globalScoreMeta').textContent = `${Number(result.totalWinners) || 0} recorded winners`;
-    $('#scoreBars').setAttribute('aria-label', `Correct guess distribution: ${counts[0]} in one guess, ${counts[1]} in two guesses, ${counts[2]} in three guesses.`);
+    $('#globalScoreMeta').textContent = `${totalPlays} recorded plays`;
+    $('#scoreBars').setAttribute('aria-label', `Daily results: ${winnerCounts[0]} wins in one guess, ${winnerCounts[1]} wins in two guesses, ${winnerCounts[2]} wins in three guesses, and ${totalPlays} total completed plays including losses.`);
   } catch {
     $('#globalScoreMeta').textContent = 'Results unavailable';
   }
