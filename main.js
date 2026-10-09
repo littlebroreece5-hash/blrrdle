@@ -199,6 +199,39 @@ function currentDayKey() {
   return `${day.year}-${day.month}-${day.day}`;
 }
 
+function easternOffsetMinutes(date) {
+  const token = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York', timeZoneName: 'longOffset',
+  }).formatToParts(date).find(({ type }) => type === 'timeZoneName')?.value ?? 'GMT-0';
+  const match = token.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+  if (!match) return 0;
+  return (match[1] === '-' ? -1 : 1) * (Number(match[2]) * 60 + Number(match[3] || 0));
+}
+
+function nextEasternMidnight() {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(now);
+  const date = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  let timestamp = Date.UTC(Number(date.year), Number(date.month) - 1, Number(date.day) + 1);
+  // Resolve the target local midnight back to UTC; repeat once to handle offsets.
+  timestamp = Date.UTC(Number(date.year), Number(date.month) - 1, Number(date.day) + 1) - easternOffsetMinutes(new Date(timestamp)) * 60000;
+  return timestamp;
+}
+
+function updateNextPuzzleTimer() {
+  const timer = $('#nextPuzzleTimer');
+  if (!timer) return;
+  const remaining = Math.max(0, nextEasternMidnight() - Date.now());
+  const totalSeconds = Math.floor(remaining / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  timer.textContent = [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':');
+  if (remaining === 0) window.setTimeout(() => location.reload(), 1200);
+}
+
 function dayDistance(from, to) {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000);
 }
@@ -670,6 +703,8 @@ async function initialiseGame() {
   restoreProgress();
   updateFrame();
   restoreHint();
+  updateNextPuzzleTimer();
+  window.setInterval(updateNextPuzzleTimer, 1000);
 }
 
 initialiseGame();
