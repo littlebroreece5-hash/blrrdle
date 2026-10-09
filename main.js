@@ -150,7 +150,7 @@ movieIndex.push(
   ['Master and Commander: The Far Side of the World', '2003'], ['Me Before You', '2016'],
   ['Meet the Parents', '2000'], ['Men in Black', '1997'], ['The Menu', '2022'],
   ['The Muppet Movie', '1979'], ['Mystic River', '2003'], ['National Treasure', '2004'],
-  ['The Northman', '2022'], ['The Number 23', '2007'], ['The OA', 'N/A'],
+  ['The Northman', '2022'], ['The Number 23', '2007'],
   ['The Odd Couple', '1968'], ['Office Space', '1999'], ['The Old Guard', '2020'],
   ['The Other Guys', '2010'], ['The Patriot', '2000'], ['The Post', '2017'],
   ['The Proposal', '2009'], ['The Pursuit of Happyness', '2006'], ['The Quick and the Dead', '1995'],
@@ -161,7 +161,7 @@ movieIndex.push(
   ['The Talented Mr. Ripley', '1999'], ['The Town', '2010'], ['The Transporter', '2002'],
   ['The Trial of the Chicago 7', '2020'], ['The Usual Suspects', '1995'], ['The Verdict', '1982'],
   ['The Virgin Suicides', '1999'], ['The Visitor', '2007'], ['The Waterboy', '1998'],
-  ['The Way Back', '2010'], ['The West Wing', 'N/A'], ['The Wrestler', '2008'],
+  ['The Way Back', '2010'], ['The Wrestler', '2008'],
   ['The Wrong Man', '1956'], ['The Young Victoria', '2009'], ['Thelma', '2017'],
   ['True Grit', '2010'], ['Twister', '1996'], ['Up', '2009'], ['War Dogs', '2016'],
   ['War of the Worlds', '2005'], ['We’re the Millers', '2013'], ['When Harry Met Sally...', '1989'],
@@ -524,8 +524,18 @@ function triggerFirstGuessCelebration() {
 
 function showSuggestions(query) {
   const list = $('#suggestions');
-  const matches = movieIndex.filter(([title]) => title.toLowerCase().includes(query.toLowerCase())).slice(0, 3);
-  if (!query.trim() || !matches.length || complete) return hideSuggestions();
+  const cleanedQuery = query.trim().toLowerCase();
+  const matches = searchableMovieIndex
+    .filter(([title]) => title.toLowerCase().includes(cleanedQuery))
+    .sort(([firstTitle], [secondTitle]) => {
+      const first = firstTitle.toLowerCase();
+      const second = secondTitle.toLowerCase();
+      const firstRank = first === cleanedQuery ? 0 : first.startsWith(cleanedQuery) ? 1 : 2;
+      const secondRank = second === cleanedQuery ? 0 : second.startsWith(cleanedQuery) ? 1 : 2;
+      return firstRank - secondRank || firstTitle.localeCompare(secondTitle);
+    })
+    .slice(0, 3);
+  if (!cleanedQuery || !matches.length || complete) return hideSuggestions();
   list.replaceChildren(...matches.map(([title, year]) => {
     const item = document.createElement('li');
     const button = document.createElement('button');
