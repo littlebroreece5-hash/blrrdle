@@ -493,9 +493,8 @@ async function updateGlobalScore() {
     // The server counts distinct anonymous players who made at least one guess,
     // so this includes winners and players who used all three guesses.
     const totalPlays = Number(result.totalPlays) || 0;
-    const counts = [...winnerCounts, totalPlays];
-    const highest = Math.max(1, ...counts);
-    counts.forEach((count, index) => {
+    const highest = Math.max(1, ...winnerCounts);
+    winnerCounts.forEach((count, index) => {
       $(`#guessBar${index + 1}`).style.setProperty('--bar', `${Math.round((count / highest) * 100)}%`);
       $(`#guessCount${index + 1}`).textContent = count;
     });
