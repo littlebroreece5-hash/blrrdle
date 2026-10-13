@@ -122,6 +122,9 @@ const puzzleAnswerIndex = [
   ['Jurassic Park', '1993'], ['Full Metal Jacket', '1987'], ['2001: A Space Odyssey', '1968'],
   ['A Space Odyssey', '1968'], ['500 Days of Summer', '2009'], ['(500) Days of Summer', '2009'],
   ['Parasite', '2019'],
+  ['Spirited Away', '2001'], ['Whiplash', '2014'], ['The Dark Knight', '2008'],
+  ['Inception', '2010'], ['The Social Network', '2010'], ['Her', '2013'],
+  ['Mad Max: Fury Road', '2015'],
 ];
 
 // A deeper English-language search pool keeps suggestions useful without
@@ -171,6 +174,35 @@ movieIndex.push(
   ['War of the Worlds', '2005'], ['We’re the Millers', '2013'], ['When Harry Met Sally...', '1989'],
   ['Where the Wild Things Are', '2009'], ['Who Framed Roger Rabbit', '1988'], ['Wind River', '2017'],
   ['The Woman in Black', '2012'], ['Wonder Woman', '2017'], ['World War Z', '2013'], ['Zombieland', '2009']
+);
+
+// More recognizable titles make the three-result suggestion menu useful for a
+// wider mix of players. These are only search options; release years are not
+// shown in the UI.
+movieIndex.push(
+  ['All About Eve', '1950'], ['The Apartment', '1960'], ['Barton Fink', '1991'],
+  ['The Banshees of Inisherin', '2022'], ['The Black Phone', '2021'], ['The Boy and the Heron', '2023'],
+  ['The Break-Up', '2006'], ['The Color of Money', '1986'], ['The Commitments', '1991'],
+  ['The Death of Stalin', '2017'], ['The Fall', '2006'], ['The Fabelmans', '2022'],
+  ['The Favourite', '2018'], ['The Fog', '1980'], ['The Holdovers', '2023'],
+  ['The Iron Claw', '2023'], ['The Girl with the Dragon Tattoo', '2011'], ['The Lives of Others', '2006'],
+  ['The Mitchells vs. the Machines', '2021'], ['The Night of the Hunter', '1955'], ['The Raid', '2011'],
+  ['The Red Turtle', '2016'], ['The Spanish Prisoner', '1997'], ['The Station Agent', '2003'],
+  ['The Wind Rises', '2013'], ['The Zone of Interest', '2023'], ['Spirited Away', '2001'],
+  ['The World Is Not Enough', '1999'], ['Your Name.', '2016']
+);
+
+movieIndex.push(
+  ['8½', '1963'], ['The Age of Innocence', '1993'], ['The Artist', '2011'],
+  ['The Band Wagon', '1953'], ['The Big Sick', '2017'], ['Black Narcissus', '1947'],
+  ['The Black Stallion', '1979'], ['City of God', '2002'], ['The Cotton Club', '1984'],
+  ['The Day of the Jackal', '1973'], ['Dog Day Afternoon', '1975'], ['The English Patient', '1996'],
+  ['The Fisher King', '1991'], ['The Great Escape', '1963'], ['Green Book', '2018'],
+  ['The Informant!', '2009'], ['The Italian Job', '1969'], ['The King and I', '1956'],
+  ['The Last Detail', '1973'], ['The Last Picture Show', '1971'], ['The Life Aquatic with Steve Zissou', '2004'],
+  ['The Manchurian Candidate', '1962'], ['The Master', '2012'], ['The Motorcycle Diaries', '2004'],
+  ['The Naked Gun', '1988'], ['The Outlaw Josey Wales', '1976'], ['The Paper Chase', '1973'],
+  ['The Philadelphia Story', '1940'], ['The Player', '1992'], ['The Remains of the Day', '1993']
 );
 
 const indexedMovieTitles = new Map();
