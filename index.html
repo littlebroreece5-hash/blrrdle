@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f7f3eb" />
     <link rel="icon" href="blrrdle-b.svg" type="image/svg+xml" sizes="any" />
-    <title>Blrrdle</title>
-    <meta name="description" content="Founded October 5, 2026, Blrrdle is a daily movie guessing game: name the film from a blurred cinematic frame." />
+    <title>Blrrdle – Daily Movie Guessing Game</title>
+    <meta name="description" content="Play Blrrdle, the daily movie guessing game. Identify a film from one blurred frame in three guesses, use a hint, and try past puzzles in the archive." />
+    <link rel="canonical" href="https://blrrdle.com/" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css?v=results-v6" />
+    <link rel="stylesheet" href="style.css?v=indexing-v1" />
   </head>
   <body>
     <main class="shell">
       <header class="topbar">
-        <a class="wordmark" href="#" aria-label="Blrrdle, reset demo">Blrrdle</a>
+        <a class="wordmark" href="#" aria-label="Blrrdle home">Blrrdle</a>
         <div class="header-actions">
           <button class="archive-button" id="archiveButton" aria-label="Past puzzles">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="1.5"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 10h17"/></svg>
@@ -26,9 +27,9 @@
 
       <section class="game" aria-labelledby="gameTitle">
         <div class="game-heading">
-          <p class="eyebrow">Daily picture puzzle <span aria-hidden="true">·</span> <span id="puzzleNumber">#0142</span></p>
+          <p class="eyebrow">Daily picture puzzle <span aria-hidden="true">·</span> <span id="puzzleNumber">Today</span></p>
           <h1 id="gameTitle">Name that movie.</h1>
-          <p class="subhead">A new frame, every day.</p>
+          <p class="subhead">Guess the movie from a blurred frame.</p>
           <p class="next-puzzle" aria-label="Time until the next puzzle"><span>Next picture in</span> <time id="nextPuzzleTimer">--:--:--</time></p>
         </div>
 
@@ -54,6 +55,14 @@
             <button class="hint" id="genreHint" aria-label="Reveal genre"><span class="hint-prompt">Genre</span><span class="hint-value" id="genreValue"></span></button>
           </div>
         </div>
+      </section>
+
+      <section class="how-to-play" aria-labelledby="howToPlayTitle">
+        <h2 id="howToPlayTitle">How to play Blrrdle</h2>
+        <p>Blrrdle is a free daily movie guessing game. Study one blurred cinematic frame and enter the film’s title. You have three guesses; each incorrect guess makes the same image clearer.</p>
+        <p>Choose one hint per puzzle: the release year or the genre. A new movie arrives every day at midnight Eastern time. Open the archive above to play past puzzles, or return tomorrow for the next daily challenge.</p>
+        <p>Your progress is saved in this browser. Finish today’s puzzle to see your results and share them with friends.</p>
+        <noscript><p>Enable JavaScript to load the movie frame, submit guesses, and play the archive. You can read more <a href="/about">about Blrrdle</a>.</p></noscript>
       </section>
 
       <footer>
